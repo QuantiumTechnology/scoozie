@@ -23,6 +23,8 @@ class CoordinatorApp[C: CanWriteXML, W: CanWriteXML](override val coordinator: C
 
   override val oozieClient: OozieClient = new OozieClient(oozieUrl)
 
+  ExecutionUtils.removeCoordinatorJob(coordinator.name, oozieClient)
+
   override val executionResult: Future[Job] =
     ExecutionUtils.run[OozieClient, Job, JobStatus](oozieClient, coordinator.getJobProperties(appPath, jobProperties))
 

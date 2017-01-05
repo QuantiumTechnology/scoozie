@@ -18,6 +18,8 @@ class TestCoordinatorApp[C: CanWriteXML, W: CanWriteXML](override val coordinato
 
   import com.klout.scoozie.writer.implicits._
 
+  ExecutionUtils.removeCoordinatorJob(coordinator.name, oozieClient)
+
   override val executionResult: Future[Job] =
     ExecutionUtils.run[OozieClient, Job, JobStatus](oozieClient, coordinator.getJobProperties(appPath, jobProperties))
 }
