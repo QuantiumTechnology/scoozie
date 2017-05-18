@@ -6,7 +6,6 @@ import com.klout.scoozie.utils.ExecutionUtils
 import com.klout.scoozie.writer.{FileSystemUtils, XmlPostProcessing}
 import org.apache.oozie.client.OozieClient
 
-import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Failure, Success}
 import scalaxb.CanWriteXML
@@ -19,6 +18,7 @@ class WorkflowApp[W: CanWriteXML](override val workflow: Workflow[W],
                                   override val postProcessing: XmlPostProcessing = XmlPostProcessing.Default)
     extends WorkflowAppAbs[W] {
   import com.klout.scoozie.writer.implicits._
+
   import ExecutionContext.Implicits.global
 
   override val oozieClient: OozieClient = new OozieClient(oozieUrl)
@@ -27,9 +27,10 @@ class WorkflowApp[W: CanWriteXML](override val workflow: Workflow[W],
     ExecutionUtils.run[OozieClient, Job, JobStatus](oozieClient, workflow.getJobProperties(appPath, jobProperties))
 
   executionResult.onComplete{
-    case Success(e) => println(s"Application Completed Successfully")
+    case Success(_) => println(s"Application Started Successfully")
     case Failure(e) => println(s"Application failed with the following error: ${e.getMessage}")
   }
 
-  Await.result(executionResult, Duration.Inf)
+  import scala.concurrent.duration._
+  Await.result(executionResult, 5.minutes)
 }

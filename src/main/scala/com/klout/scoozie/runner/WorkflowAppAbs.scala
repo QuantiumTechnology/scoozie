@@ -17,5 +17,4 @@ abstract class WorkflowAppAbs[W: CanWriteXML] extends ScoozieApp {
   logWriteResult()
 
   val executionResult: Future[Job]
-//    ExecutionUtils.run[OozieClient, Job, JobStatus](oozieClient, workflow.getJobProperties(appPath, jobProperties))
 }

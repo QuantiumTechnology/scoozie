@@ -22,20 +22,21 @@ object ExecutionUtils {
     coordJobsToRemove.foreach(oozieClient.kill)
   }
 
-  def run[T <: OozieClient, K, J](oozieClient: T, properties: Map[String, String])(implicit ev: OozieClientLike[T, K, J]): Future[K] ={
+  def run[T <: OozieClient, K, J](oozieClient: T, properties: Map[String, String])
+                                 (implicit ev: OozieClientLike[T, K, J]): Future[K] ={
     println("Starting Execution")
 
     val conf = oozieClient.createConfiguration()
     properties.foreach { case (key, value) => conf.setProperty(key, value) }
 
-    // Rerun success conditions
-    val startJobSuccess = Success[String](!_.isEmpty)
-    val retryJobStatusSuccess = Success[J](x => !(x == ev.prep || x == ev.running))
     implicit val executionContext = scala.concurrent.ExecutionContext.Implicits.global
 
     // Rerun policies
     val retry = Backoff(5, 500.millis)
     val retryForever = Pause.forever(1.second)
+
+    // Rerun success condition
+    val startJobSuccess = Success[String](!_.isEmpty)
 
     def startJob: Future[String] = retry(() => Future({
         val id: String = oozieClient.run(conf)
@@ -43,6 +44,11 @@ object ExecutionUtils {
         id
     }))(startJobSuccess, executionContext)
 
+
+    val retryJobStatusSuccess: Success[J] = Success[J](status => !(status == ev.prep))
+
+    // This polls the oozie client and waits for the predicate above to be met
+    // In earlier versions this would poll until the job was successful, now it polls until a job is running
     def retryJobStatus(id: String): Future[J] = retryForever(() =>
       Future({
         val status = ev.getJobStatus(oozieClient, id)
@@ -55,10 +61,9 @@ object ExecutionUtils {
       jobId <- startJob
       status <- retryJobStatus(jobId)
       job <- Future(ev.getJobInfo(oozieClient, jobId))
-    } yield {
-      if (status != ev.succeeded) throw new Exception(s"The job was not successful. Completed with status: $status")
-      else job
-    }
+      _ <- if (status != ev.succeeded && status != ev.running) Future.failed(new Exception(s"The job was not successful. Completed with status: $status"))
+           else Future.successful(Unit)
+    } yield job
   }
 }
 
@@ -79,7 +84,7 @@ object OozieClientLike {
     def getJobStatus(oozieClient: OozieClient, jobId: String): Job.Status = getJobInfo(oozieClient, jobId).getStatus
   }
 
-  implicit object OozieClientLikeExecutable extends OozieClientLike[OozieClient, WorkflowJob, WorkflowJob.Status] {
+  implicit object OozieClientLikeWorkflow extends OozieClientLike[OozieClient, WorkflowJob, WorkflowJob.Status] {
     val running: WorkflowJob.Status = WorkflowJob.Status.RUNNING
     val prep: WorkflowJob.Status = WorkflowJob.Status.PREP
     val succeeded: WorkflowJob.Status = WorkflowJob.Status.SUCCEEDED

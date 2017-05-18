@@ -29,7 +29,7 @@ class ScoozieAppSpec extends Specification with BeforeAfterAll with TestHdfsProv
       import scala.concurrent.duration._
       val result = Await.result(scoozieApp.executionResult, 30.second)
 
-      result.getStatus must_== WorkflowJob.Status.SUCCEEDED
+      result.getStatus must_== WorkflowJob.Status.RUNNING
     }
 
     "run a coordinator application successfully" in {
@@ -47,7 +47,7 @@ class ScoozieAppSpec extends Specification with BeforeAfterAll with TestHdfsProv
       import scala.concurrent.duration._
       val result = Await.result(scoozieApp.executionResult, 90.second)
 
-      result.getStatus must_== Job.Status.SUCCEEDED
+      result.getStatus must_== Job.Status.RUNNING
     }
 
 
@@ -66,7 +66,7 @@ class ScoozieAppSpec extends Specification with BeforeAfterAll with TestHdfsProv
       import scala.concurrent.duration._
       val result = Await.result(scoozieApp.executionResult, 90.seconds)
 
-      result.getStatus must_== Job.Status.SUCCEEDED
+      result.getStatus must_== Job.Status.RUNNING
     }.pendingUntilFixed("Currently can't because Oozie... LocalTest doesn't support bundles")
   }
 }

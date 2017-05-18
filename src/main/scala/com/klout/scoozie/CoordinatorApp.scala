@@ -23,15 +23,14 @@ class CoordinatorApp[C: CanWriteXML, W: CanWriteXML](override val coordinator: C
 
   override val oozieClient: OozieClient = new OozieClient(oozieUrl)
 
-  ExecutionUtils.removeCoordinatorJob(coordinator.name, oozieClient)
-
   override val executionResult: Future[Job] =
     ExecutionUtils.run[OozieClient, Job, JobStatus](oozieClient, coordinator.getJobProperties(appPath, jobProperties))
 
   executionResult.onComplete{
-    case Success(e) => println(s"Application Completed Successfully")
+    case Success(_) => println(s"Application Started Successfully")
     case Failure(e) => println(s"Application failed with the following error: ${e.getMessage}")
   }
 
-  Await.result(executionResult, Duration.Inf)
+  import scala.concurrent.duration._
+  Await.result(executionResult, 5.minutes)
 }
