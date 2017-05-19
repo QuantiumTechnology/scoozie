@@ -18,7 +18,8 @@ class BundleApp[B: CanWriteXML,C: CanWriteXML, W: CanWriteXML](override val bund
     extends BundleAppAbs[B, C, W] {
   override val oozieClient: OozieClient = new OozieClient(oozieUrl)
 
-  import ExecutionContext.Implicits.global
+  implicit override val executionContext: ExecutionContext = scala.concurrent.ExecutionContext.global
+
   executionResult.onComplete{
     case Success(_) => println(ScoozieConfig.successMessage)
     case Failure(e) => println(s"Application failed with the following error: ${e.getMessage}")

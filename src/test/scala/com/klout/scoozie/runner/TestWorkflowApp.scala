@@ -17,7 +17,8 @@ class TestWorkflowApp[W: CanWriteXML](override val workflow: Workflow[W],
                                       override val postProcessing: XmlPostProcessing = XmlPostProcessing.Default)
   extends WorkflowAppAbs[W] {
 
-  import ExecutionContext.Implicits.global
+  implicit override val executionContext: ExecutionContext = scala.concurrent.ExecutionContext.global
+
   executionResult.onComplete{
     case Success(_) => println(ScoozieConfig.successMessage)
     case Failure(e) => println(s"Application failed with the following error: ${e.getMessage}")

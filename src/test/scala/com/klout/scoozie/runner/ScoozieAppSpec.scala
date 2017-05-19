@@ -89,7 +89,7 @@ class ScoozieAppSpec extends Specification with BeforeAfterAll with TestHdfsProv
       result.isFailure must_== true
     }
 
-    "should not submit if writing has failed" in {
+    "should not submit job if writing has failed" in {
       val appPath: Path = new Path(fs.getHomeDirectory, "testAppWorkflow")
 
       val fileSystemUtils = new FileSystemUtils {

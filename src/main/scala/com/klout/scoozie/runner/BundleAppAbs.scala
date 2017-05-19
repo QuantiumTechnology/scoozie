@@ -16,7 +16,6 @@ abstract class BundleAppAbs[B: CanWriteXML,C: CanWriteXML, W: CanWriteXML] exten
   import com.klout.scoozie.writer.implicits._
   lazy val writeResult = bundle.writeJob(appPath, jobProperties, fileSystemUtils, postProcessing)
 
-  import ExecutionContext.Implicits.global
   override val executionResult: Future[Job] = for{
     _ <- Future.fromTry(writeResult)
     _ <- Future(logWriteResult())

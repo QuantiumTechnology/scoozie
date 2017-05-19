@@ -17,7 +17,8 @@ class TestBundleApp[B: CanWriteXML, C: CanWriteXML, W: CanWriteXML](override val
                                                                     override val postProcessing: XmlPostProcessing = XmlPostProcessing.Default)
   extends BundleAppAbs[B, C, W] {
 
-  import ExecutionContext.Implicits.global
+  implicit override val executionContext: ExecutionContext = scala.concurrent.ExecutionContext.global
+
   executionResult.onComplete{
     case Success(_) => println(ScoozieConfig.successMessage)
     case Failure(e) => println(s"Application failed with the following error: ${e.getMessage}")
