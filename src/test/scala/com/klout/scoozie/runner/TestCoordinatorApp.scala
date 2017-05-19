@@ -1,11 +1,12 @@
 package com.klout.scoozie.runner
 
+import com.klout.scoozie.ScoozieConfig
 import com.klout.scoozie.dsl.Coordinator
-import com.klout.scoozie.utils.ExecutionUtils
 import com.klout.scoozie.writer.{FileSystemUtils, XmlPostProcessing}
 import org.apache.oozie.client.OozieClient
 
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext
+import scala.util.{Failure, Success}
 import scalaxb.CanWriteXML
 
 class TestCoordinatorApp[C: CanWriteXML, W: CanWriteXML](override val coordinator: Coordinator[C, W],
@@ -16,12 +17,11 @@ class TestCoordinatorApp[C: CanWriteXML, W: CanWriteXML](override val coordinato
                                                          override val postProcessing: XmlPostProcessing = XmlPostProcessing.Default)
   extends CoordinatorAppAbs[C, W] {
 
-  import com.klout.scoozie.writer.implicits._
-
-  ExecutionUtils.removeCoordinatorJob(coordinator.name, oozieClient)
-
-  override val executionResult: Future[Job] =
-    ExecutionUtils.run[OozieClient, Job, JobStatus](oozieClient, coordinator.getJobProperties(appPath, jobProperties))
+  import ExecutionContext.Implicits.global
+  executionResult.onComplete{
+    case Success(_) => println(ScoozieConfig.successMessage)
+    case Failure(e) => println(s"Application failed with the following error: ${e.getMessage}")
+  }
 }
 
 

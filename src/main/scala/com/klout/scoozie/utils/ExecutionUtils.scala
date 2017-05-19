@@ -24,8 +24,6 @@ object ExecutionUtils {
 
   def run[T <: OozieClient, K, J](oozieClient: T, properties: Map[String, String])
                                  (implicit ev: OozieClientLike[T, K, J]): Future[K] ={
-    println("Starting Execution")
-
     val conf = oozieClient.createConfiguration()
     properties.foreach { case (key, value) => conf.setProperty(key, value) }
 
@@ -39,9 +37,7 @@ object ExecutionUtils {
     val startJobSuccess = Success[String](!_.isEmpty)
 
     def startJob: Future[String] = retry(() => Future({
-        val id: String = oozieClient.run(conf)
-        println(s"Started job: $id")
-        id
+      oozieClient.run(conf)
     }))(startJobSuccess, executionContext)
 
 
@@ -51,17 +47,18 @@ object ExecutionUtils {
     // In earlier versions this would poll until the job was successful, now it polls until a job is running
     def retryJobStatus(id: String): Future[J] = retryForever(() =>
       Future({
-        val status = ev.getJobStatus(oozieClient, id)
-        println(s"JOB: $id $status")
-        status
+        ev.getJobStatus(oozieClient, id)
       })
     )(retryJobStatusSuccess, executionContext)
 
     for {
+      _ <- Future(println("Starting Execution"))
       jobId <- startJob
+      _ <- Future(println(s"Started job: $jobId"))
       status <- retryJobStatus(jobId)
+      _ <- Future(println(s"JOB: $jobId $status"))
       job <- Future(ev.getJobInfo(oozieClient, jobId))
-      _ <- if (status != ev.succeeded && status != ev.running) Future.failed(new Exception(s"The job was not successful. Completed with status: $status"))
+      _ <- if (!(status == ev.succeeded || status == ev.running)) Future.failed(new Exception(s"The job was not successful. Completed with status: $status"))
            else Future.successful(Unit)
     } yield job
   }

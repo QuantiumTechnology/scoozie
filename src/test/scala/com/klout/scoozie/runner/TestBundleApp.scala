@@ -1,11 +1,12 @@
 package com.klout.scoozie.runner
 
+import com.klout.scoozie.ScoozieConfig
 import com.klout.scoozie.dsl.Bundle
-import com.klout.scoozie.utils.ExecutionUtils._
-import com.klout.scoozie.writer.{XmlPostProcessing, FileSystemUtils}
+import com.klout.scoozie.writer.{FileSystemUtils, XmlPostProcessing}
 import org.apache.oozie.client.OozieClient
 
-import scala.concurrent.Future
+import scala.concurrent.ExecutionContext
+import scala.util.{Failure, Success}
 import scalaxb.CanWriteXML
 
 class TestBundleApp[B: CanWriteXML, C: CanWriteXML, W: CanWriteXML](override val bundle: Bundle[B, C, W],
@@ -16,8 +17,9 @@ class TestBundleApp[B: CanWriteXML, C: CanWriteXML, W: CanWriteXML](override val
                                                                     override val postProcessing: XmlPostProcessing = XmlPostProcessing.Default)
   extends BundleAppAbs[B, C, W] {
 
-  import com.klout.scoozie.writer.implicits._
-
-  val executionResult: Future[Job] =
-    run[OozieClient, Job, JobStatus](oozieClient, bundle.getJobProperties(appPath, jobProperties))
+  import ExecutionContext.Implicits.global
+  executionResult.onComplete{
+    case Success(_) => println(ScoozieConfig.successMessage)
+    case Failure(e) => println(s"Application failed with the following error: ${e.getMessage}")
+  }
 }

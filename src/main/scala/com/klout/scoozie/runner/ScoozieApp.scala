@@ -12,7 +12,7 @@ abstract class ScoozieApp
 
   val properties: Option[Map[String, String]]
   val appPath: String
-  val oozieClient: OozieClient
+  def oozieClient: OozieClient
   val fileSystemUtils: FileSystemUtils
   val postProcessing: XmlPostProcessing
 

@@ -1,8 +1,10 @@
 package com.klout.scoozie.runner
 
 import com.klout.scoozie.dsl.Bundle
+import com.klout.scoozie.utils.ExecutionUtils
+import org.apache.oozie.client.OozieClient
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scalaxb.CanWriteXML
 
 abstract class BundleAppAbs[B: CanWriteXML,C: CanWriteXML, W: CanWriteXML] extends ScoozieApp {
@@ -13,7 +15,11 @@ abstract class BundleAppAbs[B: CanWriteXML,C: CanWriteXML, W: CanWriteXML] exten
 
   import com.klout.scoozie.writer.implicits._
   lazy val writeResult = bundle.writeJob(appPath, jobProperties, fileSystemUtils, postProcessing)
-  logWriteResult()
 
-  val executionResult: Future[Job]
+  import ExecutionContext.Implicits.global
+  override val executionResult: Future[Job] = for{
+    _ <- Future.fromTry(writeResult)
+    _ <- Future(logWriteResult())
+    job <- ExecutionUtils.run[OozieClient, Job, JobStatus](oozieClient, bundle.getJobProperties(appPath, jobProperties))
+  } yield job
 }

@@ -14,4 +14,6 @@ object ScoozieConfig {
   val scriptFolderName = "bin"
   val scriptExtension = "sh"
   val xmlExtension = "xml"
+
+  val successMessage = "Application submitted successfully"
 }
