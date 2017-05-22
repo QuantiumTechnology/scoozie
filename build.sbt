@@ -97,13 +97,13 @@ releaseProcess := Seq[ReleaseStep](
   inquireVersions,
   runClean,
   setReleaseVersion,
-  commitReleaseVersion,
-  tagRelease,
+  //  commitReleaseVersion,
+  //  tagRelease,
   releaseStepTask(assembly),
   publishArtifacts,
-  setNextVersion,
-  commitNextVersion,
-  pushChanges
+  setNextVersion
+  //  commitNextVersion,
+  //  pushChanges
 )
 
 publishTo in ThisBuild := {
