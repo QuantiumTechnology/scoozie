@@ -22,68 +22,42 @@ object ExecutionUtils {
     coordJobsToRemove.foreach(oozieClient.kill)
   }
 
-  def run[T <: OozieClient, K, J](oozieClient: T, properties: Map[String, String])(implicit ev: OozieClientLike[T, K, J]): Future[K] ={
-    println("Starting Execution")
-
+  def run[T <: OozieClient, K](oozieClient: T, properties: Map[String, String])
+                              (implicit ev: OozieClientLike[T, K]): Future[K] ={
     val conf = oozieClient.createConfiguration()
     properties.foreach { case (key, value) => conf.setProperty(key, value) }
 
-    // Rerun success conditions
-    val startJobSuccess = Success[String](!_.isEmpty)
-    val retryJobStatusSuccess = Success[J](x => !(x == ev.prep || x == ev.running))
     implicit val executionContext = scala.concurrent.ExecutionContext.Implicits.global
 
     // Rerun policies
     val retry = Backoff(5, 500.millis)
-    val retryForever = Pause.forever(1.second)
+
+    // Rerun success condition
+    val startJobSuccess = Success[String](!_.isEmpty)
 
     def startJob: Future[String] = retry(() => Future({
-        val id: String = oozieClient.run(conf)
-        println(s"Started job: $id")
-        id
+      oozieClient.run(conf)
     }))(startJobSuccess, executionContext)
 
-    def retryJobStatus(id: String): Future[J] = retryForever(() =>
-      Future({
-        val status = ev.getJobStatus(oozieClient, id)
-        println(s"JOB: $id $status")
-        status
-      })
-    )(retryJobStatusSuccess, executionContext)
-
     for {
+      _ <- Future(println("Starting Execution"))
       jobId <- startJob
-      status <- retryJobStatus(jobId)
+      _ <- Future(println(s"Started job: $jobId"))
       job <- Future(ev.getJobInfo(oozieClient, jobId))
-    } yield {
-      if (status != ev.succeeded) throw new Exception(s"The job was not successful. Completed with status: $status")
-      else job
-    }
+    } yield job
   }
 }
 
-trait OozieClientLike[Client, Job, JobStatus] {
-  val running: JobStatus
-  val prep: JobStatus
-  val succeeded: JobStatus
+trait OozieClientLike[Client, Job] {
   def getJobInfo(oozieClient: Client, jobId: String): Job
-  def getJobStatus(oozieClient: Client, jobId: String): JobStatus
 }
 
 object OozieClientLike {
-  implicit object OozieClientLikeCoord extends OozieClientLike[OozieClient, Job, Job.Status] {
-    val running: Job.Status = Job.Status.RUNNING
-    val prep: Job.Status = Job.Status.PREP
-    val succeeded: Job.Status = Job.Status.SUCCEEDED
+  implicit object OozieClientLikeCoord extends OozieClientLike[OozieClient, Job] {
     def getJobInfo(oozieClient: OozieClient, jobId: String): Job = oozieClient.getCoordJobInfo(jobId)
-    def getJobStatus(oozieClient: OozieClient, jobId: String): Job.Status = getJobInfo(oozieClient, jobId).getStatus
   }
 
-  implicit object OozieClientLikeExecutable extends OozieClientLike[OozieClient, WorkflowJob, WorkflowJob.Status] {
-    val running: WorkflowJob.Status = WorkflowJob.Status.RUNNING
-    val prep: WorkflowJob.Status = WorkflowJob.Status.PREP
-    val succeeded: WorkflowJob.Status = WorkflowJob.Status.SUCCEEDED
+  implicit object OozieClientLikeWorkflow extends OozieClientLike[OozieClient, WorkflowJob] {
     def getJobInfo(oozieClient: OozieClient, id: String): WorkflowJob = oozieClient.getJobInfo(id)
-    def getJobStatus(oozieClient: OozieClient, id: String): WorkflowJob.Status = getJobInfo(oozieClient, id).getStatus
   }
 }

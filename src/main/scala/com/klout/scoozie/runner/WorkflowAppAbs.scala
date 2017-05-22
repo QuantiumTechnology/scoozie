@@ -1,7 +1,8 @@
 package com.klout.scoozie.runner
 
 import com.klout.scoozie.dsl.Workflow
-import org.apache.oozie.client.WorkflowJob
+import com.klout.scoozie.utils.ExecutionUtils
+import org.apache.oozie.client.{OozieClient, WorkflowJob}
 
 import scala.concurrent.Future
 import scalaxb.CanWriteXML
@@ -10,12 +11,13 @@ abstract class WorkflowAppAbs[W: CanWriteXML] extends ScoozieApp {
   val workflow: Workflow[W]
 
   type Job = WorkflowJob
-  type JobStatus = WorkflowJob.Status
 
   import com.klout.scoozie.writer.implicits._
-  val writeResult = workflow.writeJob(appPath, jobProperties, fileSystemUtils, postProcessing)
-  logWriteResult()
+  override lazy val writeResult = workflow.writeJob(appPath, jobProperties, fileSystemUtils, postProcessing)
 
-  val executionResult: Future[Job]
-//    ExecutionUtils.run[OozieClient, Job, JobStatus](oozieClient, workflow.getJobProperties(appPath, jobProperties))
+  override lazy val executionResult: Future[Job] = for{
+    _ <- Future.fromTry(writeResult)
+    _ <- Future(logWriteResult())
+    job <- ExecutionUtils.run[OozieClient, Job](oozieClient, workflow.getJobProperties(appPath, jobProperties))
+  } yield job
 }

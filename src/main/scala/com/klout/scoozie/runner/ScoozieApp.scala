@@ -4,12 +4,10 @@ import com.klout.scoozie.utils.ExecutionUtils
 import com.klout.scoozie.writer.{FileSystemUtils, XmlPostProcessing}
 import org.apache.oozie.client.OozieClient
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
-abstract class ScoozieApp
-    extends App {
-
+abstract class ScoozieApp extends App {
   val properties: Option[Map[String, String]]
   val appPath: String
   val oozieClient: OozieClient
@@ -29,10 +27,11 @@ abstract class ScoozieApp
 
   lazy val jobProperties = (argumentProperties ++ properties).reduceOption(_ ++ _)
 
+  type Job
+
   val writeResult: Try[Unit]
 
-  type Job
-  type JobStatus
+  implicit val executionContext: ExecutionContext
   val executionResult: Future[Job]
 
   def logWriteResult() = writeResult match {
