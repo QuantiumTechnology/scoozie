@@ -24,5 +24,3 @@ class TestCoordinatorApp[C: CanWriteXML, W: CanWriteXML](override val coordinato
     case Failure(e) => println(s"Application failed with the following error: ${e.getMessage}")
   }
 }
-
-

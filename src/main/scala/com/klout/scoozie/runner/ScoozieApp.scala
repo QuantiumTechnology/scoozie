@@ -7,12 +7,10 @@ import org.apache.oozie.client.OozieClient
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
-abstract class ScoozieApp
-    extends App {
-
+abstract class ScoozieApp extends App {
   val properties: Option[Map[String, String]]
   val appPath: String
-  def oozieClient: OozieClient
+  val oozieClient: OozieClient
   val fileSystemUtils: FileSystemUtils
   val postProcessing: XmlPostProcessing
 
@@ -30,7 +28,6 @@ abstract class ScoozieApp
   lazy val jobProperties = (argumentProperties ++ properties).reduceOption(_ ++ _)
 
   type Job
-  type JobStatus
 
   val writeResult: Try[Unit]
 

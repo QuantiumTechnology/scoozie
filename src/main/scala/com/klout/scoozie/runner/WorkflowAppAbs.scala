@@ -11,14 +11,13 @@ abstract class WorkflowAppAbs[W: CanWriteXML] extends ScoozieApp {
   val workflow: Workflow[W]
 
   type Job = WorkflowJob
-  type JobStatus = WorkflowJob.Status
 
   import com.klout.scoozie.writer.implicits._
-  lazy val writeResult = workflow.writeJob(appPath, jobProperties, fileSystemUtils, postProcessing)
+  override lazy val writeResult = workflow.writeJob(appPath, jobProperties, fileSystemUtils, postProcessing)
 
-  override lazy val executionResult: Future[Job] = for {
+  override lazy val executionResult: Future[Job] = for{
     _ <- Future.fromTry(writeResult)
     _ <- Future(logWriteResult())
-    job <- ExecutionUtils.run[OozieClient, Job, JobStatus](oozieClient, workflow.getJobProperties(appPath, jobProperties))
+    job <- ExecutionUtils.run[OozieClient, Job](oozieClient, workflow.getJobProperties(appPath, jobProperties))
   } yield job
 }
