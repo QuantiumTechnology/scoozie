@@ -138,13 +138,13 @@ class WriterSpec extends Specification with TryMatchers {
     }
 
     "Coordinator writer" should {
+        val timezone = DateTimeZone.forID("Australia/Sydney")
+
         "write a coordinator to the correct path" in {
             val workflow = Workflow(
                 name = "test-workflow",
                 end = End dependsOn (MapReduceJob("first") dependsOn Start)
             )
-
-            val timezone = DateTimeZone.forID("Australia/Sydney")
 
             val coordinator = Coordinator(
                 name = "test-coordinator",
@@ -181,8 +181,8 @@ class WriterSpec extends Specification with TryMatchers {
                 name = "test-coordinator",
                 workflow = workflow,
                 timezone = DateTimeZone.forID("Australia/Sydney"),
-                start = DateTime.now(),
-                end = DateTime.now().plusDays(10),
+                start = DateTime.now().withZone(timezone),
+                end = DateTime.now().plusDays(10).withZone(timezone),
                 frequency = Days(24),
                 configuration = Nil,
                 workflowPath = None
@@ -209,8 +209,8 @@ class WriterSpec extends Specification with TryMatchers {
                 name = "test-coordinator",
                 workflow = workflow,
                 timezone = DateTimeZone.forID("Australia/Sydney"),
-                start = DateTime.now(),
-                end = DateTime.now().plusDays(10),
+                start = DateTime.now().withZone(timezone),
+                end = DateTime.now().plusDays(10).withZone(timezone),
                 frequency = Days(24),
                 configuration = Nil,
                 workflowPath = None
@@ -247,8 +247,8 @@ class WriterSpec extends Specification with TryMatchers {
             name = "test-coordinator",
             workflow = workflow,
             timezone = DateTimeZone.forID("Australia/Sydney"),
-            start = DateTime.now(),
-            end = DateTime.now().plusDays(10),
+            start = DateTime.now().withZone(timezone),
+            end = DateTime.now().plusDays(10).withZone(timezone),
             frequency = Days(24),
             configuration = Nil,
             workflowPath = None
@@ -295,8 +295,8 @@ class WriterSpec extends Specification with TryMatchers {
                 name = "test-coordinator",
                 workflow = workflow,
                 timezone = DateTimeZone.forID("Australia/Sydney"),
-                start = DateTime.now(),
-                end = DateTime.now().plusDays(10),
+                start = DateTime.now().withZone(timezone),
+                end = DateTime.now().plusDays(10).withZone(timezone),
                 frequency = Days(24),
                 configuration = Nil,
                 workflowPath = Some("/fake/path")
@@ -313,6 +313,8 @@ class WriterSpec extends Specification with TryMatchers {
     }
 
     "Bundle writer" should {
+        val timezone = DateTimeZone.forID("Australia/Sydney")
+
         "write a bundle to the correct path" in {
             val workflow = Workflow(
                 name = "test-workflow",
@@ -323,8 +325,8 @@ class WriterSpec extends Specification with TryMatchers {
                 name = "test-coordinator",
                 workflow = workflow,
                 timezone = DateTimeZone.forID("Australia/Sydney"),
-                start = DateTime.now(),
-                end = DateTime.now().plusDays(10),
+                start = DateTime.now().withZone(timezone),
+                end = DateTime.now().plusDays(10).withZone(timezone),
                 frequency = Days(24),
                 configuration = Nil,
                 workflowPath = None
@@ -366,8 +368,8 @@ class WriterSpec extends Specification with TryMatchers {
                 name = "test-coordinator",
                 workflow = workflow,
                 timezone = DateTimeZone.forID("Australia/Sydney"),
-                start = DateTime.now(),
-                end = DateTime.now().plusDays(10),
+                start = DateTime.now().withZone(timezone),
+                end = DateTime.now().plusDays(10).withZone(timezone),
                 frequency = Days(24),
                 configuration = Nil,
                 workflowPath = None
@@ -407,8 +409,8 @@ class WriterSpec extends Specification with TryMatchers {
                 name = "test-coordinator",
                 workflow = workflow,
                 timezone = DateTimeZone.forID("Australia/Sydney"),
-                start = DateTime.now(),
-                end = DateTime.now().plusDays(10),
+                start = DateTime.now().withZone(timezone),
+                end = DateTime.now().plusDays(10).withZone(timezone),
                 frequency = Days(24),
                 configuration = Nil,
                 workflowPath = None
@@ -446,8 +448,8 @@ class WriterSpec extends Specification with TryMatchers {
                 name = "test-coordinator",
                 workflow = workflow,
                 timezone = DateTimeZone.forID("Australia/Sydney"),
-                start = DateTime.now(),
-                end = DateTime.now().plusDays(10),
+                start = DateTime.now().withZone(timezone),
+                end = DateTime.now().plusDays(10).withZone(timezone),
                 frequency = Days(24),
                 configuration = Nil,
                 workflowPath = Some("/fake/path")
@@ -485,8 +487,8 @@ class WriterSpec extends Specification with TryMatchers {
                 name = "test-coordinator",
                 workflow = workflow,
                 timezone = DateTimeZone.forID("Australia/Sydney"),
-                start = DateTime.now(),
-                end = DateTime.now().plusDays(10),
+                start = DateTime.now().withZone(timezone),
+                end = DateTime.now().plusDays(10).withZone(timezone),
                 frequency = Days(24),
                 configuration = Nil,
                 workflowPath = None
@@ -540,8 +542,8 @@ class WriterSpec extends Specification with TryMatchers {
             name = "test-coordinator",
             workflow = workflow,
             timezone = DateTimeZone.forID("Australia/Sydney"),
-            start = DateTime.now(),
-            end = DateTime.now().plusDays(10),
+            start = DateTime.now().withZone(timezone),
+            end = DateTime.now().plusDays(10).withZone(timezone),
             frequency = Days(24),
             configuration = Nil,
             workflowPath = None
@@ -610,8 +612,8 @@ class WriterSpec extends Specification with TryMatchers {
                 name = "test-coordinator",
                 workflow = workflow,
                 timezone = DateTimeZone.forID("Australia/Sydney"),
-                start = DateTime.now(),
-                end = DateTime.now().plusDays(10),
+                start = DateTime.now().withZone(timezone),
+                end = DateTime.now().plusDays(10).withZone(timezone),
                 frequency = Days(24),
                 configuration = Nil,
                 workflowPath = None
@@ -621,8 +623,8 @@ class WriterSpec extends Specification with TryMatchers {
                 name = "test-coordinator-2",
                 workflow = workflow2,
                 timezone = DateTimeZone.forID("Australia/Sydney"),
-                start = DateTime.now(),
-                end = DateTime.now().plusDays(10),
+                start = DateTime.now().withZone(timezone),
+                end = DateTime.now().plusDays(10).withZone(timezone),
                 frequency = Days(24),
                 configuration = Nil,
                 workflowPath = None
@@ -688,8 +690,8 @@ class WriterSpec extends Specification with TryMatchers {
                 name = "test-coordinator",
                 workflow = workflow,
                 timezone = DateTimeZone.forID("Australia/Sydney"),
-                start = DateTime.now(),
-                end = DateTime.now().plusDays(10),
+                start = DateTime.now().withZone(timezone),
+                end = DateTime.now().plusDays(10).withZone(timezone),
                 frequency = Days(24),
                 configuration = Nil,
                 workflowPath = None
