@@ -144,12 +144,14 @@ class WriterSpec extends Specification with TryMatchers {
                 end = End dependsOn (MapReduceJob("first") dependsOn Start)
             )
 
+            val timezone = DateTimeZone.forID("Australia/Sydney")
+
             val coordinator = Coordinator(
                 name = "test-coordinator",
                 workflow = workflow,
-                timezone = DateTimeZone.forID("Australia/Sydney"),
-                start = DateTime.now(),
-                end = DateTime.now().plusDays(10),
+                timezone = timezone,
+                start = DateTime.now().withZone(timezone),
+                end = DateTime.now().plusDays(10).withZone(timezone),
                 frequency = Days(24),
                 configuration = Nil,
                 workflowPath = Some("/fake/path")
